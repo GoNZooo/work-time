@@ -23,9 +23,9 @@ import           Data.Either
 import           Data.Text                      ( Text
                                                 , pack
                                                 )
-import qualified Data.Map                     as Map
+import qualified Data.Map                      as Map
 import qualified Data.Text                     as T
-import qualified Data.Text.IO             as TIO
+import qualified Data.Text.IO                  as TIO
 
 type Parser = Parsec Void Text
 
