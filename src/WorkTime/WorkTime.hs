@@ -7,24 +7,31 @@ module WorkTime.WorkTime
   , MessageLine
   , Workday
   , fromText
+  , fromFile
   , workTimeHours
   , workTimeNickname
   )
 where
 
-import           Data.Attoparsec.Text
-import qualified Data.Attoparsec.Text          as APT
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import           Text.Megaparsec.Char.Lexer
+import qualified Text.Megaparsec               as MP
 import           Data.Char                      ( isDigit )
+import           Data.Void                      ( Void )
+import           Data.Either
 import           Data.Text                      ( Text
                                                 , pack
                                                 )
+import qualified Data.Map                     as Map
 import qualified Data.Text                     as T
-import qualified Data.Text.Lazy                as TL
-import qualified Data.Text.Lazy.IO             as TLIO
+import qualified Data.Text.IO             as TIO
+
+type Parser = Parsec Void Text
 
 -- | Main data type of the library. Represents an entry in Slack containing
--- a 'Nickname', 'Timestamp', 'Datestamp' and 'WorkDay' that themselves contain
--- several 'TaskDescription'.
+-- a nickname, timestamp, datestamp and 'WorkDay' that themselves contain
+-- several task descriptions.
 --
 -- An entire entry will look as follows:
 --
@@ -60,9 +67,15 @@ workTimeNickname (WorkTime (MessageLine (Nickname n) _) _) = n
 
 -- | Parses a 'Text' either into a ['WorkTime'] or into an error message in the
 -- form of a 'String'. The error message may be less than informative as it comes
--- straight from the parser ("Data.Attoparsec.Text").
-fromText :: Text -> Either String [WorkTime]
-fromText = parseOnly workTimesP
+-- straight from the parser ("Text.Megaparsec").
+fromText :: Text -> Either (ParseError (Token Text) Void) [WorkTime]
+fromText = runParser workTimesP ""
+
+-- | Parses the 'Text' in a file and returns either a ['WorkTime'] or an error
+-- message in the form of a 'String'. The error message may be less than
+-- informative as it come straight from the parser ("Text.Megaparsec").
+fromFile :: FilePath -> IO (Either (ParseError (Token Text) Void) [WorkTime])
+fromFile filename = TIO.readFile filename >>= pure . fromText
 
 -- | Represents a line like @Rickard Andersson [10:48 AM]@ in Slack.
 data MessageLine = MessageLine Nickname Timestamp deriving (Show)
@@ -95,7 +108,7 @@ newtype Month = Month Int deriving (Show)
 newtype Workamount = Workamount Double deriving (Show)
 
 workTimesP :: Parser [WorkTime]
-workTimesP = workTimeP `sepBy1` endOfLine
+workTimesP = workTimeP `sepBy1` newline
 
 workTimeP :: Parser WorkTime
 workTimeP = do
@@ -108,11 +121,11 @@ messageLineP = do
   nickname  <- nicknameP
   timestamp <- timestampP
   _         <- char ']'
-  _         <- endOfLine
+  _         <- newline
   pure $ MessageLine nickname timestamp
 
 workdaysP :: Parser [Workday]
-workdaysP = many1 workdayP
+workdaysP = some workdayP
 
 workdayP :: Parser Workday
 workdayP = do
@@ -125,27 +138,27 @@ workamountLineP = do
   _          <- char '['
   datestamp  <- datestampP
   _          <- char ']'
-  _          <- space
+  _          <- spaceChar
   workamount <- workamountP
   pure $ WorkamountLine datestamp workamount
 
 taskDescriptionsP :: Parser [TaskDescription]
-taskDescriptionsP = many1 taskDescriptionP
+taskDescriptionsP = some taskDescriptionP
 
 taskDescriptionP :: Parser TaskDescription
 taskDescriptionP = TaskDescription <$> takeDescription
  where
-  takeDescription  = APT.takeWhile1 (inClass descriptionChars) <* endOfLine
+  takeDescription  = takeWhile1P Nothing (not . inClass "[\n") <* newline
   descriptionChars = syms ++ alphanum
   syms             = "- +_.,=&|(){}<>\"`'/:;$?!#^~%ł“=@"
   alphanum         = "a-zA-Z0-9"
 
 workamountP :: Parser Workamount
 workamountP = do
-  amount <- double
+  amount <- eitherP (try float) (try decimal)
   _      <- char 'h'
-  _      <- endOfLine
-  pure $ Workamount amount
+  _      <- newline
+  pure . Workamount $ either id fromInteger amount
 
 datestampP :: Parser Datestamp
 datestampP = do
@@ -180,7 +193,7 @@ timestampP = do
 
 ampmP :: Parser AMPM
 ampmP = do
-  ampm <- eitherP (string "AM") (string "PM")
+  ampm <- eitherP (try $ string "AM") (try $ string "PM")
   case ampm of
     (Left  "AM") -> pure AM
     (Right "PM") -> pure PM
@@ -189,7 +202,10 @@ wordsP :: Parser Text
 wordsP = mconcat <$> wordP `sepBy1` whitespaceP
 
 wordP :: Parser Text
-wordP = pack <$> many1 letter
+wordP = pack <$> some letterChar
 
 nicknameP :: Parser Nickname
-nicknameP = Nickname . mconcat <$> manyTill wordsP (string " [")
+nicknameP = Nickname . pack <$> manyTill charLiteral (string " [")
+
+inClass :: String -> Char -> Bool
+inClass cs c = c `elem` cs

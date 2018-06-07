@@ -4,9 +4,11 @@ module WorkTime
     , MessageLine
     , Workday
     , fromText
+    , fromFile
     , workTimeHours
     , workTimeNickname
     , hoursFromText
+    , hoursFromFile
     , hours
     )
 where

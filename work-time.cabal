@@ -2,7 +2,7 @@ name:           work-time
 synopsis:       A library for parsing a chat-based work hour reporting scheme.
 description:    Parses a certain format for hour and task reporting in chat/Slack
                 form. See README for format.
-version:        0.1.0.0
+version:        0.1.1.0
 category:       Business
 homepage:       https://gitlab.com/gonz/work-time#work-time
 author:         Rickard Andersson
@@ -24,9 +24,9 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      base >=4.7 && < 5
     , text >= 1.2.3.0 && < 1.3
-    , attoparsec >=0.13.2.2 && <0.14
+    , megaparsec >= 6.4.1 && < 7
     , containers >= 0.5.10.2 && < 0.6
   default-language: Haskell2010
   exposed-modules: WorkTime
