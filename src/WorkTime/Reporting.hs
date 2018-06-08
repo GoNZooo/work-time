@@ -7,20 +7,15 @@ module WorkTime.Reporting
     )
 where
 
-import           Data.Void                      ( Void )
-import           Text.Megaparsec                ( Token
-                                                , ParseError
-                                                )
-import           Control.Applicative            ( (<$>) )
-import           WorkTime.WorkTime              ( fromText
-                                                , workTimeHours
-                                                , workTimeNickname
-                                                , WorkTime
-                                                )
-import           Data.Text                      ( Text )
-import qualified Data.Text.IO                  as TIO
-import           Data.Map.Strict                ( Map )
-import qualified Data.Map.Strict               as Map
+import           Control.Applicative ((<$>))
+import           Data.Map.Strict     (Map)
+import qualified Data.Map.Strict     as Map
+import           Data.Text           (Text)
+import qualified Data.Text.IO        as TIO
+import           Data.Void           (Void)
+import           Text.Megaparsec     (ParseError, Token)
+import           WorkTime.WorkTime   (WorkTime, fromText, workTimeHours,
+                                      workTimeNickname)
 
 -- | Takes a text and turns it into a list of a nickname ('Text') and work hours
 -- ('Double').

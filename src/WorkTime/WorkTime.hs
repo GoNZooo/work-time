@@ -13,19 +13,17 @@ module WorkTime.WorkTime
   )
 where
 
+import           Data.Char                  (isDigit)
+import           Data.Either
+import qualified Data.Map                   as Map
+import           Data.Text                  (Text, pack)
+import qualified Data.Text                  as T
+import qualified Data.Text.IO               as TIO
+import           Data.Void                  (Void)
 import           Text.Megaparsec
+import qualified Text.Megaparsec            as MP
 import           Text.Megaparsec.Char
 import           Text.Megaparsec.Char.Lexer
-import qualified Text.Megaparsec               as MP
-import           Data.Char                      ( isDigit )
-import           Data.Void                      ( Void )
-import           Data.Either
-import           Data.Text                      ( Text
-                                                , pack
-                                                )
-import qualified Data.Map                      as Map
-import qualified Data.Text                     as T
-import qualified Data.Text.IO                  as TIO
 
 type Parser = Parsec Void Text
 
@@ -57,7 +55,7 @@ type Parser = Parsec Void Text
 data WorkTime = WorkTime MessageLine [Workday] deriving (Show)
 
 -- | Extracts the total work hours from a 'WorkTime' entry, from all workdays
--- in the entry. 
+-- in the entry.
 workTimeHours :: WorkTime -> Double
 workTimeHours (WorkTime _ wds) = sum $ map workdayHours wds
 
