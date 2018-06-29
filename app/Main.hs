@@ -27,4 +27,4 @@ printResults :: [(Text, Double)] -> IO ()
 printResults = mapM_ printResult
  where
   printResult r =
-    TIO.putStrLn $ T.intercalate "\t" [fst r, T.pack . show $ snd r]
+    TIO.putStrLn $ T.concat [T.justifyLeft 24 ' ' $ fst r, T.justifyRight 6 ' ' . T.pack . show $ snd r]
