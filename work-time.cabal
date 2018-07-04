@@ -2,7 +2,7 @@ name:           work-time
 synopsis:       A library for parsing a chat-based work hour reporting scheme.
 description:    Parses a certain format for hour and task reporting in chat/Slack
                 form. See README for format.
-version:        0.1.2.0
+version:        0.1.2.1
 category:       Business
 homepage:       https://gitlab.com/gonz/work-time#work-time
 author:         Rickard Andersson
