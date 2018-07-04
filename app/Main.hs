@@ -8,7 +8,6 @@ import           System.Environment             ( getArgs
                                                 )
 import           WorkTime
 import           Data.Text                      ( Text )
-import           Data.Monoid                    ( (<>) )
 import qualified Data.Text                     as T
 import qualified Data.Text.IO                  as TIO
 
@@ -27,6 +26,9 @@ main = do
 printResults :: Show b => [(Text, b)] -> IO ()
 printResults = mapM_ printResult
  where
-  printResult r = TIO.putStrLn $ name r <> workHours r
-  name      = T.justifyLeft 24 ' ' . fst
-  workHours = T.justifyRight 6 ' ' . T.pack . show . snd
+  printResult = TIO.putStrLn . applyTo [name, workHours]
+  name        = T.justifyLeft 24 ' ' . fst
+  workHours   = T.justifyRight 6 ' ' . T.pack . show . snd
+
+applyTo :: Monoid b => [a -> b] -> a -> b
+applyTo fs = mconcat . (<*>) fs . pure
