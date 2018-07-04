@@ -44,7 +44,7 @@ In this example we have several `Workday` in one `WorkTime`.
 
 ```haskell
 > hoursFromText testData
-Right [("RickardAndersson",14.5),("steve",9.0)]
+Right [("Rickard Andersson",14.5),("steve",9.0)]
 ```
 
 In the case of a `Left` being returned this will contain a more or less
